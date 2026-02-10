@@ -1,0 +1,12 @@
+auth flow:
+Session → SecurityContext → Roles → SecurityConfig rules\
+
+
+Login → Session stores user+role
+        ↓
+Every request uses session
+        ↓
+Backend protects routes
+        ↓
+Frontend asks /me to know user
+

@@ -6,10 +6,15 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+
+//DTO should match the admin dashboard repo structure !
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class AdminTableRow {
+
+    private Long id;              // optional can remove later if not needed
 
     private String flatNumber;
     private String wing;
@@ -19,15 +24,4 @@ public class AdminTableRow {
     private BigDecimal totalDues;
     private String status;
 
-//    public AdminTableRow(Long flatId, String flatNumber, String wing,
-//                            String residentName, String phone, String email,
-//                            BigDecimal totalDues, String status) {
-//        this.flatNumber = flatNumber;
-//        this.wing = wing;
-//        this.residentName = residentName;
-//        this.phone = phone;
-//        this.email = email;
-//        this.totalDues = totalDues;
-//        this.status = status;
-//    }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 public interface AdminDashboardRepository extends JpaRepository<Flat, Long> {
 
     @Query("""
-    SELECT new com.yourapp.dto.AdminTableRowDto(
+    SELECT new com.example.mpr_backend_jan.dto.AdminTableRow(
         f.id,
         f.flatNumber,
         f.wing,
@@ -18,7 +18,7 @@ public interface AdminDashboardRepository extends JpaRepository<Flat, Long> {
         u.phone,
         u.email,
         COALESCE(SUM(
-            CASE WHEN i.status IN ('ISSUED','OVERDUE') THEN i.amount ELSE 0 END
+            CASE WHEN i.status IN ('ISSUED','OVERDUE') THEN i.amount END
         ),0),
         CASE
             WHEN SUM(CASE WHEN i.status = 'OVERDUE' THEN 1 ELSE 0 END) > 0 THEN 'OVERDUE'

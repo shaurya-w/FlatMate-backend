@@ -15,9 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminController {
 
-    private final AdminDashboardService service;
+    protected final AdminDashboardService service;
 
-    @GetMapping("/table")
+    @GetMapping("/dashboard")
     public List<AdminTableRow> getTable() {
         return service.getTable();
     }

@@ -2,6 +2,7 @@ package com.example.mpr_backend_jan.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -12,15 +13,12 @@ import java.time.LocalDateTime;
 @Table(name = "invoices")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Invoice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "society_id")
-    private Society society;
 
     @ManyToOne
     @JoinColumn(name = "flat_id")
@@ -44,6 +42,4 @@ public class Invoice {
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
-
 }
-

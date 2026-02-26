@@ -18,7 +18,7 @@ public class InvoiceInternalController {
     public List<InvoiceResponse> getInvoicesForMail(
             @RequestBody List<Long> invoiceIds
     ) {
-        System.out.println("Spring endpoint HIT with IDs: " + invoiceIds);
+        //System.out.println("Spring endpoint HIT with IDs: " + invoiceIds);
         return invoiceService.getInvoicesForMail(invoiceIds);
     }
 }

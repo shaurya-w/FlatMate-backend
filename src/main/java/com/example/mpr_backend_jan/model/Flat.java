@@ -27,12 +27,12 @@ public class Flat {
     @JoinColumn(name = "society_id")
     private Society society;
 
-    // One-to-one user relationship (Flat owns FK)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true)
+    // Many flats can belong to one user
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
-    // One-to-many invoices
+    // One flat → many invoices
     @OneToMany(mappedBy = "flat")
     private List<Invoice> invoices;
 }

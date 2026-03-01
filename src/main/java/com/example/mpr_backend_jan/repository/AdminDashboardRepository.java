@@ -10,25 +10,26 @@ import java.util.List;
 public interface AdminDashboardRepository extends JpaRepository<Flat, Long> {
 
     @Query("""
-        SELECT new com.example.mpr_backend_jan.dto.AdminTableRow(
-            f.id,
-            f.flatNumber,
-            f.wing,
-            u.id,
-            u.name,
-            u.phone,
-            u.email,
-            COALESCE(SUM(CASE WHEN i.status IN ('ISSUED','OVERDUE') THEN i.amount END), 0),
-            CASE
-                WHEN SUM(CASE WHEN i.status = 'OVERDUE' THEN 1 ELSE 0 END) > 0 THEN 'OVERDUE'
-                WHEN SUM(CASE WHEN i.status = 'ISSUED' THEN 1 ELSE 0 END) > 0 THEN 'PENDING'
-                ELSE 'PAID'
-            END
-        )
-        FROM Flat f
-        LEFT JOIN f.user u
-        LEFT JOIN f.invoices i
-        GROUP BY f.id, f.flatNumber, f.wing, u.id, u.name, u.phone, u.email
-    """)
+    SELECT new com.example.mpr_backend_jan.dto.AdminTableRow(
+        f.id,
+        f.flatNumber,
+        f.wing,
+        u.id,
+        u.name,
+        u.phone,
+        u.email,
+        COALESCE(SUM(CASE WHEN i.status IN ('ISSUED','OVERDUE') THEN i.amount END), 0),
+        CASE
+            WHEN SUM(CASE WHEN i.status = 'OVERDUE' THEN 1 ELSE 0 END) > 0 THEN 'OVERDUE'
+            WHEN SUM(CASE WHEN i.status = 'ISSUED' THEN 1 ELSE 0 END) > 0 THEN 'PENDING'
+            ELSE 'PAID'
+        END
+    )
+    FROM Flat f
+    JOIN f.user u
+    LEFT JOIN f.invoices i
+    WHERE u.role = 'USER'
+    GROUP BY f.id, f.flatNumber, f.wing, u.id, u.name, u.phone, u.email
+""")
     List<AdminTableRow> fetchAdminTable();
 }

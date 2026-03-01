@@ -32,7 +32,7 @@ public class Flat {
     @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
-    // One flat → many invoices
+    // One-to-many invoices
     @OneToMany(mappedBy = "flat")
     private List<Invoice> invoices;
 }

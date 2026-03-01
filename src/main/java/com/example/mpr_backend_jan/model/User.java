@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -28,6 +29,10 @@ public class User {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    // A single user can own multiple flats.
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Flat> flats;
 
     @PrePersist
     protected void onCreate() {

@@ -1,0 +1,241 @@
+=============================================================
+  SCHEMA CONTEXT — Society Management Backend (Spring Boot)
+=============================================================
+Generated for AI context. All entities use JPA/Hibernate.
+Tables are managed by Spring via Hibernate DDL auto.
+
+--------------------------------------------------------------
+ENTITIES & TABLES (DO NOT MODIFY — frozen tables)
+--------------------------------------------------------------
+
+1. users  [DO NOT MODIFY]
+   - id (PK, BIGINT, auto)
+   - name (VARCHAR)
+   - email (VARCHAR)
+   - phone (VARCHAR)
+   - password (VARCHAR)
+   - role (ENUM: USER, ADMIN)
+   - created_at (TIMESTAMP)
+   RELATIONS:
+     - One user → Many flats (flats.user_id FK)
+     - One user → Many complaints (complaints.resident_id FK)
+     - One user → Many payments (payments.user_id FK)
+
+2. society  [DO NOT MODIFY]
+   - id (PK, BIGINT, auto)
+   - society_name (VARCHAR)
+   - address (TEXT)
+   - primary_contact_name (VARCHAR)
+   - primary_contact_phone (VARCHAR)
+   RELATIONS:
+     - One society → Many flats
+     - One society → Many notices
+     - One society → Many complaints
+     - One society → Many invoices
+     - One society → Many society_charges
+     - One society → Many cron_jobs
+     - One society → One society_settings
+
+3. flats  [DO NOT MODIFY]
+   - id (PK, BIGINT, auto)
+   - flat_number (VARCHAR)
+   - wing (VARCHAR)
+   - society_id (FK → society.id)
+   - user_id (FK → users.id, nullable)
+   RELATIONS:
+     - Many flats → One society
+     - Many flats → One user (owner, nullable)
+     - One flat → Many invoices
+
+4. notices  [DO NOT MODIFY]
+   - id (PK, BIGINT, auto)
+   - title (VARCHAR, NOT NULL)
+   - content (TEXT, NOT NULL)
+   - society_id (FK → society.id, NOT NULL)
+   - author_id (FK → users.id, NOT NULL)
+   - created_at (TIMESTAMP)
+   - expiration_date (TIMESTAMP, NOT NULL)
+   RELATED TABLE:
+     - notice_tags (notice_id FK, tag VARCHAR) — @ElementCollection
+
+5. complaints  [DO NOT MODIFY]
+   - id (PK, BIGINT, auto)
+   - complaint_number (VARCHAR, unique) — format: CMP-XXXXXXXX
+   - subject (VARCHAR, NOT NULL)
+   - body (TEXT, NOT NULL)
+   - status (ENUM: SUBMITTED, LOOKED_AT, IN_PROGRESS, RESOLVED, CLOSED)
+   - tag (ENUM: PLUMBING, ELECTRICAL, CLEANING, SECURITY, NOISE, MAINTENANCE, OTHER)
+   - admin_message (TEXT)
+   - resident_id (FK → users.id, NOT NULL)
+   - flat_id (FK → flats.id, NOT NULL)
+   - society_id (FK → society.id, NOT NULL)
+   - created_at (TIMESTAMP)
+   - updated_at (TIMESTAMP)
+
+--------------------------------------------------------------
+ENTITIES & TABLES (MODIFIABLE — billing/charges/payments)
+--------------------------------------------------------------
+
+6. charge_types
+   - id (PK, BIGINT, auto)
+   - name (VARCHAR)        — e.g. "Electricity Charges", "Water Charges"
+   - description (VARCHAR)
+   RELATIONS:
+     - One charge_type → Many society_charges
+     - One charge_type → Many invoice_line_items
+
+7. society_charges
+   - id (PK, BIGINT, auto)
+   - society_id (FK → society.id, NOT NULL)       ← ManyToOne
+   - charge_type_id (FK → charge_types.id, NOT NULL) ← ManyToOne
+   - amount (DECIMAL)
+   - calculation_type (VARCHAR)  — e.g. FIXED, PER_SQFT
+   - effective_from (DATE)
+   - effective_to (DATE, nullable)
+   CARDINALITY:
+     - Many society_charges → One society
+     - Many society_charges → One charge_type
+   PURPOSE: Defines what charges a society applies and at what rate.
+
+8. invoices
+   - id (PK, BIGINT, auto)
+   - flat_id (FK → flats.id, NOT NULL)       ← ManyToOne
+   - society_id (FK → society.id, NOT NULL)  ← ManyToOne
+   - billing_month (DATE)
+   - base_amount (DECIMAL)
+   - previous_arrears (DECIMAL)
+   - late_fee_amount (DECIMAL)
+   - total_amount (DECIMAL)
+   - amount_paid (DECIMAL)
+   - status (ENUM: ISSUED, PAID, OVERDUE)
+   - due_date (DATE)
+   - issued_at (TIMESTAMP)
+   - created_at (TIMESTAMP)
+   - updated_at (TIMESTAMP)
+   CARDINALITY:
+     - Many invoices → One flat
+     - Many invoices → One society
+     - One invoice → Many invoice_line_items
+     - One invoice → Many payments
+     - One invoice → Many razorpay_orders
+
+9. invoice_line_items
+   - id (PK, BIGINT, auto)
+   - invoice_id (FK → invoices.id, NOT NULL)         ← ManyToOne
+   - charge_type_id (FK → charge_types.id, NOT NULL) ← ManyToOne
+   - description (VARCHAR)
+   - amount (DECIMAL)
+   - created_at (TIMESTAMP)
+   CARDINALITY:
+     - Many line_items → One invoice
+     - Many line_items → One charge_type
+   PURPOSE: Breakdown of each charge within an invoice.
+
+10. payments
+    - id (PK, BIGINT, auto)
+    - invoice_id (FK → invoices.id, NOT NULL)  ← ManyToOne
+    - user_id (FK → users.id, NOT NULL)        ← ManyToOne
+    - amount (DECIMAL)
+    - method (ENUM: RAZORPAY, CHEQUE, BANK_TRANSFER, UPI)
+    - status (VARCHAR)
+    - razorpay_payment_id (VARCHAR)
+    - razorpay_order_id (VARCHAR)
+    - razorpay_signature (VARCHAR)
+    - paid_at (TIMESTAMP)
+    - created_at (TIMESTAMP)
+    CARDINALITY:
+      - Many payments → One invoice
+      - Many payments → One user
+
+11. razorpay_orders
+    - id (PK, BIGINT, auto)
+    - invoice_id (FK → invoices.id, NOT NULL)  ← ManyToOne
+    - razorpay_order_id (VARCHAR, unique)
+    - amount (DECIMAL)
+    - currency (VARCHAR)
+    - status (VARCHAR)
+    - created_at (TIMESTAMP)
+    CARDINALITY:
+      - Many razorpay_orders → One invoice
+    PURPOSE: Tracks Razorpay order creation before payment confirmation.
+
+12. razorpay_webhooks
+    - id (PK, BIGINT, auto)
+    - event_id (VARCHAR)
+    - event_type (VARCHAR)
+    - payload (TEXT)       — full JSON from Razorpay
+    - signature (VARCHAR)
+    - status (VARCHAR)
+    - received_at (TIMESTAMP)
+    - processed_at (TIMESTAMP)
+    NOTE: Standalone audit log table. No FK relations by design.
+    PURPOSE: Idempotent webhook storage for payment events.
+
+13. cron_jobs
+    - id (PK, BIGINT, auto)
+    - job_name (VARCHAR)
+    - scheduled_for (TIMESTAMP)
+    - started_at (TIMESTAMP)
+    - society_id (FK → society.id, NOT NULL)   ← ManyToOne
+    - completed_at (TIMESTAMP)
+    - status (VARCHAR)      — e.g. SUCCESS, FAILED, RUNNING
+    - triggered_by (VARCHAR)
+    - error_message (TEXT)
+    - created_at (TIMESTAMP)
+    CARDINALITY:
+      - Many cron_jobs → One society
+    PURPOSE: Audit trail for scheduled monthly invoice generation jobs.
+
+14. society_settings
+    - id (PK, BIGINT, auto)
+    - society_id (FK → society.id, NOT NULL, UNIQUE)  ← OneToOne
+    - logo_url (VARCHAR)
+    - stamp_image_url (VARCHAR)
+    - authorized_signatory_name (VARCHAR)
+    - authorized_signatory_role (VARCHAR)
+    - invoice_footer_text (TEXT)
+    CARDINALITY:
+      - One society_settings → One society (bidirectional OneToOne)
+    PURPOSE: PDF invoice branding configuration per society.
+
+--------------------------------------------------------------
+ENUMS
+--------------------------------------------------------------
+Role:            USER, ADMIN
+ComplaintStatus: SUBMITTED, LOOKED_AT, IN_PROGRESS, RESOLVED, CLOSED
+ComplaintTag:    PLUMBING, ELECTRICAL, CLEANING, SECURITY, NOISE, MAINTENANCE, OTHER
+InvoiceStatus:   ISSUED, PAID, OVERDUE
+PaymentMethod:   RAZORPAY, CHEQUE, BANK_TRANSFER, UPI
+
+--------------------------------------------------------------
+RELATION SUMMARY (for Supabase visualizer)
+--------------------------------------------------------------
+users          (1) ──< (N) flats              via flats.user_id
+users          (1) ──< (N) complaints         via complaints.resident_id
+users          (1) ──< (N) payments           via payments.user_id
+society        (1) ──< (N) flats              via flats.society_id
+society        (1) ──< (N) notices            via notices.society_id
+society        (1) ──< (N) complaints         via complaints.society_id
+society        (1) ──< (N) invoices           via invoices.society_id
+society        (1) ──< (N) society_charges    via society_charges.society_id
+society        (1) ──< (N) cron_jobs          via cron_jobs.society_id
+society        (1) ──  (1) society_settings   via society_settings.society_id
+charge_types   (1) ──< (N) society_charges    via society_charges.charge_type_id
+charge_types   (1) ──< (N) invoice_line_items via invoice_line_items.charge_type_id
+flats          (1) ──< (N) invoices           via invoices.flat_id
+invoices       (1) ──< (N) invoice_line_items via invoice_line_items.invoice_id
+invoices       (1) ──< (N) payments           via payments.invoice_id
+invoices       (1) ──< (N) razorpay_orders    via razorpay_orders.invoice_id
+razorpay_webhooks — standalone (no FK), audit log only
+
+--------------------------------------------------------------
+NOTES FOR AI CONTEXT
+--------------------------------------------------------------
+- society_charges defines WHAT charges apply to a society and at what rate.
+- invoice_line_items is the SNAPSHOT of charges billed on a specific invoice.
+- razorpay_webhooks is intentionally a standalone table (no FK) for idempotent webhook processing.
+- CronJob.society is ManyToOne (one society can have many job runs over time).
+- SocietySettings is OneToOne with Society (unique constraint on society_id).
+- Invoice.status uses InvoiceStatus enum (ISSUED/PAID/OVERDUE).
+- Payment.method uses PaymentMethod enum.
+- All timestamps use LocalDateTime (UTC recommended in production).

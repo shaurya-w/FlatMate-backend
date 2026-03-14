@@ -17,25 +17,23 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> {}) // use WebConfig CORS
-                .csrf(csrf -> csrf.disable())
-
+                .cors() // use WebConfig CORS
+                .and()
+                .csrf().disable()  // disable CSRF for APIs
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/login", "/api/register", "/internal/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-
-                // disable default login page redirect
-                .formLogin(form -> form.disable())
-
-                // logout endpoint
+                .formLogin().disable()  // disable default login page
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
                 );
+
+        System.out.println("SecurityFilterChain initialized");
 
         return http.build();
     }
@@ -47,10 +45,13 @@ public class SecurityConfig {
             BCryptPasswordEncoder passwordEncoder
     ) throws Exception {
 
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder)
-                .and()
-                .build();
+        AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        authBuilder.userDetailsService(userDetailsService)
+                .passwordEncoder(passwordEncoder);
+
+        System.out.println("AuthenticationManager initialized with CustomUserDetailsService and BCryptPasswordEncoder");
+
+        return authBuilder.build();
     }
 }

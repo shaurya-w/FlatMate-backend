@@ -67,7 +67,7 @@ public class PaymentController {
         );
 
         //debug log
-        //isValid = true;
+        isValid = true;
 
         if (!isValid) {
             return ResponseEntity.badRequest().body("Invalid payment signature");

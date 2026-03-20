@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/payments")
@@ -53,7 +54,11 @@ public class PaymentController {
 
         razorpayOrderRepository.save(rpOrder);
 
-        return ResponseEntity.ok(order.toString());
+        return ResponseEntity.ok(Map.of(
+                "orderId", order.get("id"),
+                "amount", order.get("amount"),
+                "currency", order.get("currency")
+        ));
     }
 
     @PostMapping("/verify")
@@ -67,7 +72,7 @@ public class PaymentController {
         );
 
         //debug log
-        isValid = true;
+        //isValid = true;
 
         if (!isValid) {
             return ResponseEntity.badRequest().body("Invalid payment signature");
@@ -104,7 +109,9 @@ public class PaymentController {
 
         invoiceRepository.save(invoice);
 
-        return ResponseEntity.ok("Payment verified and saved");
+        return ResponseEntity.ok(Map.of(
+                "success", true
+        ));
     }
 
 }

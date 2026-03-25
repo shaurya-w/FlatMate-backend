@@ -198,6 +198,24 @@ ENTITIES & TABLES (MODIFIABLE — billing/charges/payments)
       - One society_settings → One society (bidirectional OneToOne)
     PURPOSE: PDF invoice branding configuration per society.
 
+15. society_contacts
+    - id (PK, BIGINT, auto)
+    - society_id (FK → society.id, NOT NULL)   ← ManyToOne
+    - name (VARCHAR, NOT NULL)
+    - purpose (VARCHAR, NOT NULL)   — e.g. "Plumber", "Society Secretary"
+    - email (VARCHAR, nullable)
+    - created_at (TIMESTAMP)
+    - updated_at (TIMESTAMP)
+    CARDINALITY:
+      - Many society_contacts → One society
+    RELATED TABLE:
+      - society_contact_phones (contact_id FK, phone_number VARCHAR) — @ElementCollection
+
+16. society_contact_phones
+    - contact_id (FK → society_contacts.id, ON DELETE CASCADE)
+    - phone_number (VARCHAR)
+    PURPOSE: Stores multiple phone numbers per contact.
+
 --------------------------------------------------------------
 ENUMS
 --------------------------------------------------------------
@@ -227,6 +245,8 @@ invoices       (1) ──< (N) invoice_line_items via invoice_line_items.invoice
 invoices       (1) ──< (N) payments           via payments.invoice_id
 invoices       (1) ──< (N) razorpay_orders    via razorpay_orders.invoice_id
 razorpay_webhooks — standalone (no FK), audit log only
+society          (1) ──< (N) society_contacts       via society_contacts.society_id
+society_contacts (1) ──< (N) society_contact_phones via society_contact_phones.contact_id
 
 --------------------------------------------------------------
 NOTES FOR AI CONTEXT
@@ -239,3 +259,7 @@ NOTES FOR AI CONTEXT
 - Invoice.status uses InvoiceStatus enum (ISSUED/PAID/OVERDUE).
 - Payment.method uses PaymentMethod enum.
 - All timestamps use LocalDateTime (UTC recommended in production).
+- society_contacts stores important contacts per society (plumbers, electricians, etc.).
+- society_contact_phones is an @ElementCollection join table — cascades delete from society_contacts.
+- SocietyCharge defines what charges apply to a society. Edits do NOT retroactively modify issued invoices.
+- ChargeType is never deleted — only the SocietyCharge link is removed, preserving InvoiceLineItem history.

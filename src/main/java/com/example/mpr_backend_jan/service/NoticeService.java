@@ -62,7 +62,6 @@ public class NoticeService {
                 .content(request.getContent())
                 .society(targetSociety)  // Verified securely above
                 .author(author)
-                .tags(request.getTags())
                 .expirationDate(expiration)
                 .build();
 
@@ -84,7 +83,6 @@ public class NoticeService {
                 .title(notice.getTitle())
                 .content(notice.getContent())
                 .authorName(notice.getAuthor().getName())
-                .tags(notice.getTags())
                 .createdAt(notice.getCreatedAt())
                 .expirationDate(notice.getExpirationDate())
                 .build();

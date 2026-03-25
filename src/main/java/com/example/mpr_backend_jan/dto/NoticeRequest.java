@@ -11,5 +11,4 @@ public class NoticeRequest {
     private String content;
     private Long societyId;
     private int durationInDays;
-    private List<String> tags;
 }

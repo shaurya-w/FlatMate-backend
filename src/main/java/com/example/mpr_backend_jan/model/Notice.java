@@ -33,12 +33,6 @@ public class Notice {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    // Automatically creates a linked table for tags
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "notice_tags", joinColumns = @JoinColumn(name = "notice_id"))
-    @Column(name = "tag")
-    private List<String> tags;
-
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

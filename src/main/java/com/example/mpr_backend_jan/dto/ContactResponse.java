@@ -8,13 +8,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
 @Builder
-public class NoticeResponse {
+@AllArgsConstructor
+public class ContactResponse {
     private Long id;
-    private String title;
-    private String content;
-    private String authorName;
+    private String name;
+    private String purpose;
+    private String email;
+    private List<String> phoneNumbers;
+    private Long societyId;
     private LocalDateTime createdAt;
-    private LocalDateTime expirationDate;
+    private LocalDateTime updatedAt;
 }

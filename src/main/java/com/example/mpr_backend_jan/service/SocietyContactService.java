@@ -158,6 +158,25 @@ public class SocietyContactService {
                 "You manage multiple societies " + ids + ". Please pass ?societyId= to specify which one.");
     }
 
+    @Transactional(readOnly = true)
+    public List<ContactResponse> getContactsForResident(Long societyId, String residentEmail) {
+        User resident = userRepository.findByEmail(residentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + residentEmail));
+
+        // Security check: resident must own a flat in the requested society
+        boolean belongsToSociety = resident.getFlats().stream()
+                .anyMatch(f -> f.getSociety() != null && f.getSociety().getId().equals(societyId));
+
+        if (!belongsToSociety) {
+            throw new RuntimeException("Security Exception: You do not belong to society " + societyId);
+        }
+
+        return contactRepository.findBySocietyId(societyId)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     private ContactResponse toResponse(SocietyContact contact) {
         return ContactResponse.builder()
                 .id(contact.getId())

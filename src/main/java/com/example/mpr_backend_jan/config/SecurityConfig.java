@@ -50,12 +50,13 @@ public class SecurityConfig {
 
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
+                "http://localhost:3001",
                 "https://flat-mate-frontend.vercel.app",
                 "https://*.vercel.app"
         ));
 
         config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"  // ← add "PATCH"
         ));
 
         config.setAllowedHeaders(List.of("*"));

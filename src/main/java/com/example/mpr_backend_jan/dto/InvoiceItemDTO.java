@@ -13,15 +13,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class InvoiceItemDTO {
 
-    // The human-readable label, e.g. "Electricity Charges"
     private String description;
-
-    // The rupee amount for this line item
     private BigDecimal amount;
 
-    // -------------------------------------------------------
-    // Static factory — maps directly from InvoiceLineItem
-    // -------------------------------------------------------
     public static InvoiceItemDTO from(com.example.mpr_backend_jan.model.InvoiceLineItem item) {
         return InvoiceItemDTO.builder()
                 .description(item.getDescription())

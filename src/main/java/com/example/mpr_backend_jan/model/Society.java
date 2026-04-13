@@ -35,5 +35,4 @@ public class Society {
     public void onCreate() {
         LocalDateTime createdAt = LocalDateTime.now();
     }
-
 }

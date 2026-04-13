@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -21,10 +20,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class InvoiceResponse {
 
-
-// -------------------------------------------------------
-// Identity
-// -------------------------------------------------------
         private Long invoiceId;
         private String flatNumber;
         private String wing;
@@ -33,53 +28,29 @@ public class InvoiceResponse {
         private LocalDate billingMonth;
         private LocalDate dueDate;
 
-        // -------------------------------------------------------
-        // Metadata
-        // -------------------------------------------------------
         private InvoiceStatus status;
         private LocalDateTime issuedAt;
 
-        // -------------------------------------------------------
-        // Financials
-        // -------------------------------------------------------
         private BigDecimal baseAmount;
         private BigDecimal previousArrears;
         private BigDecimal lateFeeAmount;
         private BigDecimal totalAmount;
         private BigDecimal amountPaid;
 
-        // -------------------------------------------------------
-        // Line items — full charge breakdown
-        // -------------------------------------------------------
         private List<InvoiceItemDTO> lineItems;
 
-        // -------------------------------------------------------
-        // Branding — sourced from society_settings
-        // -------------------------------------------------------
         private String logoUrl;
         private String stampImageUrl;
         private String authorizedSignatoryName;
 
-        // -------------------------------------------------------
-        // Static factory
-        //
-        // Usage:
-        //   SocietySettings settings = societySettingsRepo
-        //       .findBySocietyId(invoice.getSociety().getId())
-        //       .orElse(null);
-        //   InvoiceResponse response = InvoiceResponse.from(invoice, settings);
-        // -------------------------------------------------------
-        public static InvoiceResponse from(Invoice invoice, SocietySettings settings) {
+        private String societyName;
+        private String societyAddress;
 
-                // Map line items; guard against an uninitialised collection
-                List<InvoiceItemDTO> items = (invoice.getLineItems() != null)
-                        ? invoice.getLineItems()
-                        .stream()
-                        .map(InvoiceItemDTO::from)
-                        .collect(Collectors.toList())
-                        : Collections.emptyList();
-
-                // Branding fields are nullable — settings row may not exist yet
+        public static InvoiceResponse from(
+                Invoice invoice,
+                SocietySettings settings,
+                List<InvoiceItemDTO> items
+        ) {
                 String logoUrl = null;
                 String stampImageUrl = null;
                 String authorizedSignatoryName = null;
@@ -90,8 +61,15 @@ public class InvoiceResponse {
                         authorizedSignatoryName = settings.getAuthorizedSignatoryName();
                 }
 
+                String societyName = null;
+                String societyAddress = null;
+
+                if (invoice.getSociety() != null) {
+                        societyName = invoice.getSociety().getSocietyName();
+                        societyAddress = invoice.getSociety().getAddress();
+                }
+
                 return InvoiceResponse.builder()
-                        // Identity
                         .invoiceId(invoice.getId())
                         .flatNumber(invoice.getFlat().getFlatNumber())
                         .wing(invoice.getFlat().getWing())
@@ -100,24 +78,23 @@ public class InvoiceResponse {
                         .billingMonth(invoice.getBillingMonth())
                         .dueDate(invoice.getDueDate())
 
-                        // Metadata
                         .status(invoice.getStatus())
                         .issuedAt(invoice.getIssuedAt())
 
-                        // Financials
                         .baseAmount(invoice.getBaseAmount())
                         .previousArrears(invoice.getPreviousArrears())
                         .lateFeeAmount(invoice.getLateFeeAmount())
                         .totalAmount(invoice.getTotalAmount())
                         .amountPaid(invoice.getAmountPaid())
 
-                        // Line items
-                        .lineItems(items)
+                        .lineItems(items != null ? items : Collections.emptyList())
 
-                        // Branding
                         .logoUrl(logoUrl)
                         .stampImageUrl(stampImageUrl)
                         .authorizedSignatoryName(authorizedSignatoryName)
+
+                        .societyName(societyName)
+                        .societyAddress(societyAddress)
 
                         .build();
         }

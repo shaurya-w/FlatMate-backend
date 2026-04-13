@@ -9,10 +9,6 @@ import java.util.List;
 
 public interface SocietyChargeRepository extends JpaRepository<SocietyCharge, Long> {
 
-    /**
-     * Fetch ALL charges for a society (active + inactive),
-     * joined with their ChargeType for bifurcation display.
-     */
     @Query("""
             SELECT sc FROM SocietyCharge sc
             JOIN FETCH sc.chargeType ct
@@ -21,10 +17,6 @@ public interface SocietyChargeRepository extends JpaRepository<SocietyCharge, Lo
             """)
     List<SocietyCharge> findBySocietyIdWithChargeType(@Param("societyId") Long societyId);
 
-    /**
-     * Fetch ONLY currently active charges (effectiveTo IS NULL or >= today).
-     * Used for computing the "total monthly charges" figure.
-     */
     @Query("""
             SELECT sc FROM SocietyCharge sc
             JOIN FETCH sc.chargeType ct

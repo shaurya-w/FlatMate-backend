@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -71,7 +72,8 @@ public class AuthController {
         return ResponseEntity.ok("Logged out");
     }
 
-    @PostMapping("/forgot-password")       // ← /auth/forgot-password (prefix comes from class)
+    @PostMapping("/forgot-password")
+    @Transactional // ← /auth/forgot-password (prefix comes from class)
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
         String email = body.get("email");
 

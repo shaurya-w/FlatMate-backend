@@ -27,8 +27,15 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/login", "/auth/forgot-password", "/auth/reset-password",
-                                "/api/register", "/internal/**").permitAll()
+                        // Use wildcards (/**) to ensure the routes are fully unlocked for the demo
+                        .requestMatchers(
+                                "/auth/login/**",
+                                "/auth/forgot-password/**",
+                                "/auth/reset-password/**",
+                                "/api/register/**",
+                                "/internal/**",
+                                "/error"
+                        ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
